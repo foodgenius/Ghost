@@ -51,6 +51,10 @@ function updateConfig(config) {
     // Otherwise default to default content path location
     contentPath = ghostConfig.paths.contentPath || path.resolve(appRoot, 'content');
 
+    // Let's get a little crazy and allow themes to override the admin templates, too.
+    // This is probably a terrible idea, but we'll figure it out.
+    adminViews = ghostConfig.paths.adminViews || path.join(corePath, '/server/views/');
+
     _.merge(ghostConfig, {
         paths: {
             'appRoot':          appRoot,
@@ -65,7 +69,7 @@ function updateConfig(config) {
             'imagesPath':       path.resolve(contentPath, 'images'),
             'imagesRelPath':    'content/images',
 
-            'adminViews':       path.join(corePath, '/server/views/'),
+            'adminViews':       adminViews,
             'helperTemplates':  path.join(corePath, '/server/helpers/tpl/'),
             'exportPath':       path.join(corePath, '/server/data/export/'),
             'lang':             path.join(corePath, '/shared/lang/'),
