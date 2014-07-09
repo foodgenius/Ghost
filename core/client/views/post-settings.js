@@ -12,6 +12,7 @@
     Ghost.View.PostSettings = Ghost.View.extend({
 
         events: {
+            'blur  .post-setting-meta_description' : 'updateMetaDescription',
             'blur  .post-setting-slug' : 'editSlug',
             'click .post-setting-slug' : 'selectSlug',
             'blur  .post-setting-date' : 'editDate',
@@ -32,9 +33,12 @@
             var slug = this.model ? this.model.get('slug') : '',
                 pubDate = this.model ? this.model.get('published_at') : 'Not Published',
                 $pubDateEl = this.$('.post-setting-date'),
-                $postSettingSlugEl = this.$('.post-setting-slug');
+                $postSettingSlugEl = this.$('.post-setting-slug'),
+                meta_description = this.model.get('meta_description') || '',
+                $metaDescEl = this.$('.post-setting-meta_description');
 
             $postSettingSlugEl.val(slug);
+            $metaDescEl.val(meta_description);
 
             // Update page status test if already a page.
             if (this.model && this.model.get('page')) {
@@ -76,7 +80,7 @@
             // and then update the placeholder value.
             if (title) {
                 $.ajax({
-                    url: Ghost.paths.apiRoot + '/posts/slug/' + encodeURIComponent(title) + '/',
+                    url: Ghost.paths.apiRoot + '/posts/getSlug/' + encodeURIComponent(title) + '/',
                     success: function (result) {
                         $postSettingSlugEl.attr('placeholder', result);
                     }
@@ -256,7 +260,40 @@
             });
 
         }, 500),
+        updateMetaDescription: _.debounce(function(e){
+            var pageEl = $(e.currentTarget),
+                data = pageEl.val()
+            ;
+            //meta_description
+            if (this.model.id === undefined) {
+                this.model.set({
+                    meta_description: data
+                });
+                return;
+            }
 
+            this.model.save({
+                meta_description: data
+            }, {
+                success : function (model) {
+                    Ghost.notifications.addItem({
+                        type: 'success',
+                        message: 'Meta Data Updated',
+                        status: 'passive'
+                    });
+                },
+                error : function (model, xhr) {
+                    /*jshint unused:false*/
+                    //  Reset back to original value
+                    Ghost.notifications.addItem({
+                        type: 'error',
+                        message: Ghost.Views.Utils.getRequestErrorMessage(xhr),
+                        status: 'passive'
+                    });
+                }
+            });
+
+        }, 500),
         toggleStaticPage: _.debounce(function (e) {
             var pageEl = $(e.currentTarget),
                 page = pageEl.prop('checked');
